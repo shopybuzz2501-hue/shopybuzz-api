@@ -1,0 +1,254 @@
+[
+ {
+  "k": "Cotton Kurta Set|Amazon",
+  "name": "Cotton Kurta Set",
+  "type": "set",
+  "store": "Amazon",
+  "price": 1299,
+  "rating": 4.3,
+  "link": ""
+ },
+ {
+  "k": "Cotton Kurta Set|Flipkart",
+  "name": "Cotton Kurta Set",
+  "type": "set",
+  "store": "Flipkart",
+  "price": 1199,
+  "rating": 4.1,
+  "link": ""
+ },
+ {
+  "k": "Cotton Kurta Set|Meesho",
+  "name": "Cotton Kurta Set",
+  "type": "set",
+  "store": "Meesho",
+  "price": 999,
+  "rating": 3.9,
+  "link": ""
+ },
+ {
+  "k": "Satin Party Shirt|Myntra",
+  "name": "Satin Party Shirt",
+  "type": "top",
+  "store": "Myntra",
+  "price": 799,
+  "rating": 4.2,
+  "link": ""
+ },
+ {
+  "k": "Satin Party Shirt|Amazon",
+  "name": "Satin Party Shirt",
+  "type": "top",
+  "store": "Amazon",
+  "price": 899,
+  "rating": 4.4,
+  "link": ""
+ },
+ {
+  "k": "Satin Party Shirt|Shopsy",
+  "name": "Satin Party Shirt",
+  "type": "top",
+  "store": "Shopsy",
+  "price": 879,
+  "rating": 4.0,
+  "link": ""
+ },
+ {
+  "k": "Sequin Co-ord Set|Myntra",
+  "name": "Sequin Co-ord Set",
+  "type": "set",
+  "store": "Myntra",
+  "price": 1899,
+  "rating": 4.1,
+  "link": ""
+ },
+ {
+  "k": "Sequin Co-ord Set|Flipkart",
+  "name": "Sequin Co-ord Set",
+  "type": "set",
+  "store": "Flipkart",
+  "price": 1749,
+  "rating": 3.9,
+  "link": ""
+ },
+ {
+  "k": "Denim Jacket|Flipkart",
+  "name": "Denim Jacket",
+  "type": "top",
+  "store": "Flipkart",
+  "price": 1499,
+  "rating": 4.2,
+  "link": ""
+ },
+ {
+  "k": "Denim Jacket|Meesho",
+  "name": "Denim Jacket",
+  "type": "top",
+  "store": "Meesho",
+  "price": 1199,
+  "rating": 3.8,
+  "link": ""
+ },
+ {
+  "k": "Slim Fit Chinos|Amazon",
+  "name": "Slim Fit Chinos",
+  "type": "bot",
+  "store": "Amazon",
+  "price": 999,
+  "rating": 4.3,
+  "link": ""
+ },
+ {
+  "k": "Slim Fit Chinos|Shopsy",
+  "name": "Slim Fit Chinos",
+  "type": "bot",
+  "store": "Shopsy",
+  "price": 849,
+  "rating": 4.0,
+  "link": ""
+ },
+ {
+  "k": "Round Tee|Meesho",
+  "name": "Round Tee",
+  "type": "top",
+  "store": "Meesho",
+  "price": 349,
+  "rating": 3.9,
+  "link": ""
+ },
+ {
+  "k": "Round Tee|Myntra",
+  "name": "Round Tee",
+  "type": "top",
+  "store": "Myntra",
+  "price": 449,
+  "rating": 4.2,
+  "link": ""
+ },
+ {
+  "k": "Aviator Sunglasses|Flipkart",
+  "name": "Aviator Sunglasses",
+  "type": "gl",
+  "store": "Flipkart",
+  "price": 459,
+  "rating": 4.1,
+  "link": ""
+ },
+ {
+  "k": "Aviator Sunglasses|Meesho",
+  "name": "Aviator Sunglasses",
+  "type": "gl",
+  "store": "Meesho",
+  "price": 399,
+  "rating": 3.8,
+  "link": ""
+ },
+ {
+  "k": "Matte Lipstick|Amazon",
+  "name": "Matte Lipstick",
+  "type": "lip",
+  "store": "Amazon",
+  "price": 349,
+  "rating": 4.4,
+  "link": ""
+ },
+ {
+  "k": "Matte Lipstick|Shopsy",
+  "name": "Matte Lipstick",
+  "type": "lip",
+  "store": "Shopsy",
+  "price": 319,
+  "rating": 4.0,
+  "link": ""
+ },
+ {
+  "k": "Gold Hoop Earrings|Meesho",
+  "name": "Gold Hoop Earrings",
+  "type": "er",
+  "store": "Meesho",
+  "price": 199,
+  "rating": 4.0,
+  "link": ""
+ },
+ {
+  "k": "Gold Hoop Earrings|Amazon",
+  "name": "Gold Hoop Earrings",
+  "type": "er",
+  "store": "Amazon",
+  "price": 299,
+  "rating": 4.3,
+  "link": ""
+ },
+ {
+  "k": "Red Bindi Pack|Amazon",
+  "name": "Red Bindi Pack",
+  "type": "bn",
+  "store": "Amazon",
+  "price": 99,
+  "rating": 4.5,
+  "link": ""
+ },
+ {
+  "k": "Red Bindi Pack|Meesho",
+  "name": "Red Bindi Pack",
+  "type": "bn",
+  "store": "Meesho",
+  "price": 79,
+  "rating": 4.1,
+  "link": ""
+ },
+ {
+  "k": "Pearl Necklace|Myntra",
+  "name": "Pearl Necklace",
+  "type": "nk",
+  "store": "Myntra",
+  "price": 599,
+  "rating": 4.2,
+  "link": ""
+ },
+ {
+  "k": "Pearl Necklace|Flipkart",
+  "name": "Pearl Necklace",
+  "type": "nk",
+  "store": "Flipkart",
+  "price": 549,
+  "rating": 4.0,
+  "link": ""
+ },
+ {
+  "k": "Kundan Bracelet|Flipkart",
+  "name": "Kundan Bracelet",
+  "type": "br",
+  "store": "Flipkart",
+  "price": 399,
+  "rating": 4.1,
+  "link": ""
+ },
+ {
+  "k": "Kundan Bracelet|Shopsy",
+  "name": "Kundan Bracelet",
+  "type": "br",
+  "store": "Shopsy",
+  "price": 349,
+  "rating": 3.9,
+  "link": ""
+ },
+ {
+  "k": "Silver Payal Anklet|Meesho",
+  "name": "Silver Payal Anklet",
+  "type": "an",
+  "store": "Meesho",
+  "price": 249,
+  "rating": 4.2,
+  "link": ""
+ },
+ {
+  "k": "Silver Payal Anklet|Amazon",
+  "name": "Silver Payal Anklet",
+  "type": "an",
+  "store": "Amazon",
+  "price": 349,
+  "rating": 4.4,
+  "link": ""
+ }
+]
