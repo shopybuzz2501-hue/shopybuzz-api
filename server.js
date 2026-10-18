@@ -20,17 +20,57 @@ PRODUCT RECOMMENDATIONS: you may recommend ONLY items from this catalog (id|name
 CATALOG:
 ${catLines}`;
 
+// ---------- Email OTP login ----------
+const crypto = require("crypto");
+const SECRET = process.env.AUTH_SECRET || "";
+const EMAIL_PROVIDER = (process.env.EMAIL_PROVIDER || "resend").toLowerCase(); // resend | brevo | mock (mock = test only)
+const EMAIL_KEY = process.env.EMAIL_API_KEY || "";
+const EMAIL_FROM = process.env.EMAIL_FROM || ""; // e.g. ShopyBuzz <login@shopybuzz.in>
+const EMAIL_DOMAINS = (process.env.EMAIL_DOMAINS || "gmail.com").split(",").map(s => s.trim().toLowerCase()); // "*" = any email
+const DAILY_USER = +process.env.DAILY_LIMIT_USER || 80; // AI messages per logged-in user per day
+const otps = new Map(), reqLog = new Map();
+const b64 = b => Buffer.from(b).toString("base64url");
+const mac = d => crypto.createHmac("sha256", SECRET).update(d).digest("base64url");
+function sign(p) { const d = b64(JSON.stringify(p)); return d + "." + mac(d); }
+function verifyTok(t) {
+  if (!t || !SECRET) return null;
+  const [d, sg] = String(t).split("."); if (!d || !sg) return null;
+  const e = mac(d); if (sg.length !== e.length || !crypto.timingSafeEqual(Buffer.from(sg), Buffer.from(e))) return null;
+  try { const p = JSON.parse(Buffer.from(d, "base64url").toString()); return p.exp > Date.now() ? p : null; } catch (e) { return null; }
+}
+function uidOf(email) { let [l, d] = email.split("@"); if (d === "gmail.com" || d === "googlemail.com") { l = l.split("+")[0].replace(/\./g, ""); d = "gmail.com"; } return l + "@" + d; }
+function okEmail(e) { return typeof e === "string" && e.length <= 100 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && (EMAIL_DOMAINS.includes("*") || EMAIL_DOMAINS.includes(e.split("@")[1])); }
+function rl(key, max, ms) { const now = Date.now(), a = (reqLog.get(key) || []).filter(t => now - t < ms); if (a.length >= max) { reqLog.set(key, a); return true; } a.push(now); reqLog.set(key, a); return false; }
+const hashOtp = (uid, otp) => crypto.createHash("sha256").update(SECRET + "|" + uid + "|" + otp).digest("hex");
+const getIp = req => (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+async function sendMail(to, otp) {
+  const subject = `Your ShopyBuzz login code: ${otp}`;
+  const text = `Your ShopyBuzz login code is ${otp}. It is valid for 10 minutes. If you did not request it, ignore this email.`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:420px"><h2 style="margin:0 0 8px">ShopyBuzz</h2><p>Your login code:</p><p style="font-size:30px;letter-spacing:6px;font-weight:bold;margin:8px 0">${otp}</p><p style="color:#555">Valid for 10 minutes. If you did not request this, you can ignore this email.</p></div>`;
+  if (EMAIL_PROVIDER === "mock") { console.log("[mock mail] to", to, "otp", otp); return; }
+  if (!EMAIL_KEY || !EMAIL_FROM) throw new Error("email not configured");
+  let r;
+  if (EMAIL_PROVIDER === "resend") {
+    r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + EMAIL_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, text }) });
+  } else if (EMAIL_PROVIDER === "brevo") {
+    const m = EMAIL_FROM.match(/^(.*)<(.+)>$/), sender = m ? { name: m[1].trim(), email: m[2].trim() } : { email: EMAIL_FROM };
+    r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST", headers: { "api-key": EMAIL_KEY, "Content-Type": "application/json", accept: "application/json" }, body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html, textContent: text }) });
+  } else throw new Error("unknown EMAIL_PROVIDER");
+  if (!r.ok) throw new Error("mail " + r.status + " " + (await r.text()).slice(0, 200));
+}
+setInterval(() => { const n = Date.now(); for (const [k, v] of otps) if (v.exp < n) otps.delete(k); for (const [k, v] of reqLog) if (!v.length || n - v[v.length - 1] > 3600e3) reqLog.delete(k); }, 600e3).unref();
+
 const hits = new Map();
-function limited(ip) {
+function limited(ip, max = DAILY) {
   const d = new Date().toDateString(), h = hits.get(ip);
   if (!h || h.d !== d) { hits.set(ip, { d, n: 1 }); return false; }
-  h.n++; return h.n > DAILY;
+  h.n++; return h.n > max;
 }
 function cors(req, res) {
   const o = req.headers.origin;
   if (o && (ORIGINS.includes(o) || ORIGINS.includes("*"))) { res.setHeader("Access-Control-Allow-Origin", o); res.setHeader("Vary", "Origin"); }
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
 function send(res, code, obj) { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(obj)); }
 function body(req) {
@@ -67,11 +107,42 @@ http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
   const url = (req.url || "").split("?")[0];
   try {
-    if (url === "/" || url === "/api/health") return send(res, 200, { ok: true, provider: PROVIDER, ready: PROVIDER === "mock" || (!!KEY && !!MODEL) });
+    if (url === "/" || url === "/api/health") return send(res, 200, { ok: true, provider: PROVIDER, ready: PROVIDER === "mock" || (!!KEY && !!MODEL), auth: !!SECRET && (EMAIL_PROVIDER === "mock" || (!!EMAIL_KEY && !!EMAIL_FROM)) });
     if (url === "/api/products" && req.method === "GET") return send(res, 200, CAT.map(p => ({ k: p.k, link: p.link || "" })));
+    if (url === "/api/auth/request" && req.method === "POST") {
+      if (!SECRET) return send(res, 503, { error: "auth_off", message: "Login abhi available nahi hai." });
+      const b = await body(req), email = String(b.email || "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: "bad_email", message: "Sahi email daalo." });
+      if (!okEmail(email)) return send(res, 400, { error: "bad_email", message: "Abhi sirf " + EMAIL_DOMAINS.join(", ") + " email se login ho sakta hai." });
+      const uid = uidOf(email), old = otps.get(uid), now = Date.now();
+      if (old && now - old.at < 45000) return send(res, 429, { error: "wait", message: "Thoda ruko, 45 second baad dobara OTP maango." });
+      if (rl("ip:" + getIp(req), 20, 3600e3) || rl("u:" + uid, 5, 3600e3)) return send(res, 429, { error: "slow", message: "Bahut zyada OTP requests. Thodi der baad try karo." });
+      const otp = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
+      otps.set(uid, { h: hashOtp(uid, otp), exp: now + 600e3, tries: 0, at: now });
+      try { await sendMail(email, otp); } catch (e) { otps.delete(uid); console.error("mail error:", String(e.message).slice(0, 300)); return send(res, 502, { error: "mail_failed", message: "Email nahi bhej paye. Thodi der baad try karo." }); }
+      return send(res, 200, { ok: true });
+    }
+    if (url === "/api/auth/verify" && req.method === "POST") {
+      if (!SECRET) return send(res, 503, { error: "auth_off", message: "Login abhi available nahi hai." });
+      if (rl("v:" + getIp(req), 60, 3600e3)) return send(res, 429, { error: "slow", message: "Bahut zyada koshish. Thodi der baad try karo." });
+      const b = await body(req), email = String(b.email || "").trim().toLowerCase(), code = String(b.otp || "").trim();
+      if (!okEmail(email) || !/^\d{6}$/.test(code)) return send(res, 400, { error: "bad_input", message: "6 digit ka OTP daalo." });
+      const uid = uidOf(email), rec = otps.get(uid);
+      if (!rec || rec.exp < Date.now()) return send(res, 400, { error: "expired", message: "OTP expire ho gaya ya mila nahi. Naya OTP maango." });
+      if (++rec.tries > 5) { otps.delete(uid); return send(res, 429, { error: "tries", message: "Bahut galat koshish. Naya OTP maango." }); }
+      const a = Buffer.from(hashOtp(uid, code)), c = Buffer.from(rec.h);
+      if (a.length !== c.length || !crypto.timingSafeEqual(a, c)) return send(res, 400, { error: "wrong", message: "OTP galat hai." });
+      otps.delete(uid);
+      return send(res, 200, { token: sign({ e: email, u: uid, exp: Date.now() + 30 * 86400e3 }), email });
+    }
+    if (url === "/api/me" && req.method === "GET") {
+      const tk = verifyTok((req.headers.authorization || "").replace(/^Bearer /, ""));
+      return tk ? send(res, 200, { email: tk.e }) : send(res, 401, { error: "unauthorized" });
+    }
     if (url === "/api/chat" && req.method === "POST") {
       const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
-      if (limited(ip)) return send(res, 429, { error: "limit", text: "Aaj ki free AI limit khatam ho gayi. Kal dobara try karo." });
+      const tk = verifyTok((req.headers.authorization || "").replace(/^Bearer /, ""));
+      if (limited(tk ? "u:" + tk.u : ip, tk ? DAILY_USER : DAILY)) return send(res, 429, { error: "limit", text: "Aaj ki free AI limit khatam ho gayi. Kal dobara try karo." });
       const b = await body(req);
       let msgs = (Array.isArray(b.messages) ? b.messages : []).filter(m => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim()).map(m => ({ role: m.role, content: m.content.slice(0, 1000) })).slice(-12);
       while (msgs.length && msgs[0].role !== "user") msgs.shift();
