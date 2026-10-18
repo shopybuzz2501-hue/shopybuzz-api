@@ -1,3 +1,4 @@
+[README-1.md](https://github.com/user-attachments/files/33638262/README-1.md)
 # ShopyBuzz AI backend
 
 Files: server.js, package.json, products.json (no npm packages needed).
@@ -18,3 +19,15 @@ Files: server.js, package.json, products.json (no npm packages needed).
 ## Affiliate links
 products.json mein har product ke "link" mein apna affiliate link paste karo.
 Khaali link wale product par "kharido" abhi link nahi kholega.
+
+## Gmail OTP login (naye environment variables)
+Render ke Web Service mein ye add karo:
+- AUTH_SECRET   = lamba random text (kam se kam 32 akshar), kisi ko mat batana. Badalne par sab log logout ho jayenge.
+- EMAIL_PROVIDER = resend (ya brevo)
+- EMAIL_API_KEY  = email service ki API key
+- EMAIL_FROM     = ShopyBuzz <login@shopybuzz.in>   (wo domain email service mein verify hona chahiye)
+- EMAIL_DOMAINS  = gmail.com   (sab email chalane ho to: *)
+- DAILY_LIMIT_USER = 80 (logged-in user ke roz ke AI messages, optional)
+
+Check: /api/health kholo, "auth": true dikhna chahiye.
+Dhyan: EMAIL_PROVIDER=mock sirf testing ke liye hai (OTP server log mein dikhta hai), live par kabhi mat rakhna.
